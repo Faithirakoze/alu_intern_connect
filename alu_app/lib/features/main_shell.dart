@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import '../features/explore_screen.dart';
 import '../features/application_screen.dart';
+import '../features/profile_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -17,7 +18,7 @@ class _MainShellState extends State<MainShell> {
     HomeScreen(),
     ExploreScreen(),
     ApplicationsScreen(),
-    Center(child: Text('Profile — coming soon')),
+    ProfileScreen(),
   ];
 
   @override
