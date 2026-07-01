@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 import '../providers/opportunity_provider.dart';
 import '../models/opportunity.dart';
+import '../features/opportunity_detail_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -15,27 +16,18 @@ class HomeScreen extends ConsumerWidget {
 
     return SafeArea(
       child: SingleChildScrollView(
+        primary: false,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
-
-            // ── 1. HEADER ─────────────────────────────────────────
             _Header(firstName: firstName, ref: ref),
-
             const SizedBox(height: 20),
-
-            // ── 2. SEARCH BAR ─────────────────────────────────────
             const _SearchBar(),
-
             const SizedBox(height: 28),
-
-            // ── 3. RECOMMENDED ────────────────────────────────────
             const _SectionHeader(title: 'Recommended', showSeeAll: true),
             const SizedBox(height: 12),
-
-            // Show first opportunity as the featured card
             opportunities.when(
               loading: () => const _RecommendedCardSkeleton(),
               error: (e, _) => const _RecommendedCardSkeleton(),
@@ -44,27 +36,18 @@ class HomeScreen extends ConsumerWidget {
                 return _RecommendedCard(opportunity: list.first);
               },
             ),
-
             const SizedBox(height: 28),
-
-            // ── 4. CATEGORIES ─────────────────────────────────────
             const _SectionHeader(title: 'Browse by category'),
             const SizedBox(height: 12),
             const _CategoryRow(),
-
             const SizedBox(height: 28),
-
-            // ── 5. RECENT OPPORTUNITIES ───────────────────────────
             const _SectionHeader(title: 'Recent opportunities'),
             const SizedBox(height: 12),
-
             opportunities.when(
               loading: () => const Center(
                 child: Padding(
                   padding: EdgeInsets.all(32),
-                  child: CircularProgressIndicator(
-                    color: Color(0xFF2563EB),
-                  ),
+                  child: CircularProgressIndicator(color: Color(0xFF2563EB)),
                 ),
               ),
               error: (e, _) => const Padding(
@@ -78,20 +61,16 @@ class HomeScreen extends ConsumerWidget {
                     child: Center(child: Text('No opportunities yet.')),
                   );
                 }
-                return ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: list.length,
-                  separatorBuilder: (_, _) => const Divider(
-                    height: 1,
-                    color: Color(0xFFE5E7EB),
-                  ),
-                  itemBuilder: (_, i) =>
-                      _RecentOpportunityTile(opportunity: list[i]),
+                return Column(
+                  children: list.map((o) => Column(
+                    children: [
+                      _RecentOpportunityTile(opportunity: o),
+                      const Divider(height: 1, color: Color(0xFFE5E7EB)),
+                    ],
+                  )).toList(),
                 );
               },
             ),
-
             const SizedBox(height: 32),
           ],
         ),
@@ -116,7 +95,7 @@ class _Header extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Hello, $firstName 👋',
+                'Hello, $firstName',
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
@@ -241,7 +220,6 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-// ─── Recommended card (real data) ─────────────────────────────────────────────
 
 class _RecommendedCard extends StatelessWidget {
   final Opportunity opportunity;
@@ -249,99 +227,110 @@ class _RecommendedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1D4ED8), Color(0xFF3B82F6)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                OpportunityDetailScreen(opportunity: opportunity),
+          ),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF1D4ED8), Color(0xFF3B82F6)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
         ),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.auto_awesome_rounded,
+                      color: Colors.white, size: 20),
                 ),
-                child: const Icon(Icons.auto_awesome_rounded,
-                    color: Colors.white, size: 20),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(10),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.bookmark_border_rounded,
+                      color: Colors.white, size: 20),
                 ),
-                child: const Icon(Icons.bookmark_border_rounded,
-                    color: Colors.white, size: 20),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            opportunity.title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
+              ],
             ),
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              const Icon(Icons.business_rounded,
-                  color: Colors.white70, size: 14),
-              const SizedBox(width: 4),
-              Text(opportunity.startupName,
-                  style: const TextStyle(
-                      color: Colors.white70, fontSize: 13)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            children: opportunity.skills
-                .take(3)
-                .map((s) => Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(s,
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 12)),
-                    ))
-                .toList(),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              const Icon(Icons.access_time_rounded,
-                  color: Colors.white70, size: 14),
-              const SizedBox(width: 4),
-              Text(opportunity.commitmentType,
-                  style: const TextStyle(
-                      color: Colors.white70, fontSize: 12)),
-              const Spacer(),
-              Text(
-                _timeAgo(opportunity.postedAt),
-                style: const TextStyle(
-                    color: Colors.white70, fontSize: 12),
+            const SizedBox(height: 16),
+            Text(
+              opportunity.title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
               ),
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.business_rounded,
+                    color: Colors.white70, size: 14),
+                const SizedBox(width: 4),
+                Text(opportunity.startupName,
+                    style: const TextStyle(
+                        color: Colors.white70, fontSize: 13)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: opportunity.skills
+                  .take(3)
+                  .map((s) => Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(s,
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 12)),
+                      ))
+                  .toList(),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(Icons.access_time_rounded,
+                    color: Colors.white70, size: 14),
+                const SizedBox(width: 4),
+                Text(opportunity.commitmentType,
+                    style: const TextStyle(
+                        color: Colors.white70, fontSize: 12)),
+                const Spacer(),
+                Text(
+                  _timeAgo(opportunity.postedAt),
+                  style: const TextStyle(
+                      color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -354,7 +343,6 @@ class _RecommendedCard extends StatelessWidget {
   }
 }
 
-// ─── Skeleton loader for recommended card ─────────────────────────────────────
 
 class _RecommendedCardSkeleton extends StatelessWidget {
   const _RecommendedCardSkeleton();
@@ -372,7 +360,6 @@ class _RecommendedCardSkeleton extends StatelessWidget {
   }
 }
 
-// ─── Empty state ──────────────────────────────────────────────────────────────
 
 class _EmptyCard extends StatelessWidget {
   const _EmptyCard();
@@ -389,8 +376,7 @@ class _EmptyCard extends StatelessWidget {
       ),
       child: const Column(
         children: [
-          Icon(Icons.work_off_outlined,
-              size: 40, color: Color(0xFF93C5FD)),
+          Icon(Icons.work_off_outlined, size: 40, color: Color(0xFF93C5FD)),
           SizedBox(height: 8),
           Text('No opportunities posted yet.',
               style: TextStyle(color: Color(0xFF64748B))),
@@ -400,7 +386,6 @@ class _EmptyCard extends StatelessWidget {
   }
 }
 
-// ─── Category row ─────────────────────────────────────────────────────────────
 
 class _CategoryRow extends StatelessWidget {
   const _CategoryRow();
@@ -444,13 +429,11 @@ class _CategoryRow extends StatelessWidget {
   }
 }
 
-// ─── Recent opportunity tile (real data) ──────────────────────────────────────
 
 class _RecentOpportunityTile extends StatelessWidget {
   final Opportunity opportunity;
   const _RecentOpportunityTile({required this.opportunity});
 
-  // Pick icon color based on category
   Color _categoryColor(String category) {
     switch (category) {
       case 'Engineering':
@@ -484,43 +467,56 @@ class _RecentOpportunityTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = _categoryColor(opportunity.category);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(_categoryIcon(opportunity.category),
-                color: color, size: 22),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        debugPrint('TAPPED!');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => OpportunityDetailScreen(opportunity: opportunity),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(opportunity.title,
+        );
+      },
+      child: Container(
+        color: Colors.transparent,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(_categoryIcon(opportunity.category),
+                  color: color, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(opportunity.title,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF0F172A),
+                      )),
+                  const SizedBox(height: 3),
+                  Text(
+                    '${opportunity.startupName}  •  ${opportunity.commitmentType}  •  ${opportunity.locationType}',
                     style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF0F172A),
-                    )),
-                const SizedBox(height: 3),
-                Text(
-                  '${opportunity.startupName}  •  ${opportunity.commitmentType}  •  ${opportunity.locationType}',
-                  style: const TextStyle(
-                      fontSize: 12, color: Color(0xFF64748B)),
-                ),
-              ],
+                        fontSize: 12, color: Color(0xFF64748B)),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Icon(Icons.bookmark_border_rounded,
-              color: Color(0xFF94A3B8), size: 20),
-        ],
+            const Icon(Icons.bookmark_border_rounded,
+                color: Color(0xFF94A3B8), size: 20),
+          ],
+        ),
       ),
     );
   }

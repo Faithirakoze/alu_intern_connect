@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
+import '../features/explore_screen.dart';
+import '../features/application_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -11,11 +13,10 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
 
-  // For now, only Home is real — others are placeholders
   final _screens = const [
     HomeScreen(),
-    Center(child: Text('Explore — coming soon')),
-    Center(child: Text('Applications — coming soon')),
+    ExploreScreen(),
+    ApplicationsScreen(),
     Center(child: Text('Profile — coming soon')),
   ];
 
